@@ -1,5 +1,6 @@
 package com.library;
 
+import com.library.exception.BookUnavailableException;
 import com.library.model.Book;
 import com.library.model.Patron;
 
@@ -70,5 +71,37 @@ class LendingServiceTest {
         lendingService.returnBook(book);
 
         assertTrue(book.isAvailable());
+    }
+
+
+    @Test
+    void shouldThrowExceptionWhenBookAlreadyBorrowed() {
+
+        Book book =
+                new Book(
+                        "101",
+                        "Clean Code",
+                        "Robert Martin",
+                        2008
+                );
+
+        Patron patron =
+                new Patron(
+                        "P1",
+                        "Amit"
+                );
+
+        lendingService.checkoutBook(
+                book,
+                patron
+        );
+
+        assertThrows(
+                BookUnavailableException.class,
+                () -> lendingService.checkoutBook(
+                        book,
+                        patron
+                )
+        );
     }
 }
