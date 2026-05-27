@@ -2,121 +2,170 @@
 
 ## Overview
 
-This project is a Java-based Library Management System designed using Object-Oriented Programming (OOP), SOLID principles, and design patterns.
+Library Management System is a Java-based Low Level Design (LLD) project developed using Object-Oriented Programming (OOP), SOLID principles, and design patterns.
 
 The system helps librarians manage:
 - Books
 - Patrons
-- Lending process
-- Inventory
+- Lending operations
+- Inventory tracking
 - Search functionality
+- Notifications
+
+This project demonstrates clean architecture, modular design, extensibility, and professional coding practices.
 
 ---
 
-## Features
+# Features
 
-### Book Management
+## 1. Book Management
 - Add books
 - Remove books
-- Search books by:
-    - Title
-    - Author
+- View all books
+- Maintain book availability
 
-### Patron Management
+## 2. Patron Management
 - Add patrons
-- Track borrowing history
+- Track patron borrowing history
 
-### Lending Process
+## 3. Lending Process
 - Checkout books
 - Return books
+- Prevent already borrowed books from being issued
+
+## 4. Inventory Management
+- Track available books
 - Track borrowed books
 
-### Inventory Management
-- Maintain available and borrowed books
+## 5. Search Functionality
+Supports searching books by:
+- Title
+- Author
+
+Search logic is extensible using Strategy Pattern.
+
+## 6. Notification System
+Observer Pattern is used for notifications.
+
+Current notification channels:
+- Email Notification
+- App Notification
+
+New notification channels can be added without modifying existing code.
 
 ---
 
-## Design Patterns Used
+# Design Patterns Used
 
-### Strategy Pattern
-Used for implementing different search algorithms:
-- Title search
-- Author search
+## 1. Strategy Pattern
+Used for implementing different search algorithms.
 
-### Factory Pattern
+Strategies:
+- `TitleSearchStrategy`
+- `AuthorSearchStrategy`
+
+Benefits:
+- Open for extension
+- Easy to add new search types
+
+---
+
+## 2. Factory Pattern
 Used to create search strategies dynamically.
 
----
+Class:
+- `SearchStrategyFactory`
 
-## SOLID Principles Applied
-
-### Single Responsibility Principle
-Each service handles only one responsibility.
-
-### Open Closed Principle
-New search strategies can be added without modifying existing code.
-
-### Dependency Inversion Principle
-Services depend on abstractions instead of concrete implementations.
+Benefits:
+- Centralized object creation
+- Loose coupling
 
 ---
 
-## Project Structure
+## 3. Observer Pattern
+Used for notification handling.
 
+Observers:
+- `EmailNotification`
+- `AppNotification`
+
+Benefits:
+- Loose coupling
+- Easy to add new notification channels
+
+---
+
+# SOLID Principles Applied
+
+## Single Responsibility Principle (SRP)
+Each class handles only one responsibility.
+
+Examples:
+- `InventoryService` handles inventory
+- `LendingService` handles lending
+- `NotificationService` handles notifications
+
+---
+
+## Open Closed Principle (OCP)
+New search strategies and notification types can be added without modifying existing classes.
+
+---
+
+## Dependency Inversion Principle (DIP)
+Services depend on abstractions/interfaces instead of concrete implementations.
+
+---
+
+# Project Structure
+
+```text
 src/main/java/com/library
 
-- model
-- service
-- strategy
-- factory
-- util
-
+├── model
+│   ├── Book
+│   ├── Patron
+│   └── LoanRecord
+│
+├── service
+│   ├── InventoryService
+│   ├── LendingService
+│   ├── NotificationService
+│   └── SearchService
+│
+├── strategy
+│   ├── SearchStrategy
+│   ├── TitleSearchStrategy
+│   └── AuthorSearchStrategy
+│
+├── factory
+│   ├── SearchStrategyFactory
+│   └── SearchType
+│
+├── observer
+│   ├── NotificationObserver
+│   ├── EmailNotification
+│   └── AppNotification
+│
+├── exception
+│   ├── BookNotFoundException
+│   ├── BookUnavailableException
+│   └── InvalidPatronException
+│
+├── util
+│   └── ValidationUtil
+│
+└── Main
+```
 ---
-
-## Technologies Used
-
-- Java 17
-- Gradle
-- JUnit 5
-- IntelliJ IDEA
-
----
-
-## How to Run
-
-1. Clone repository
-2. Open in IntelliJ
-3. Run Main.java
-
----
-
-## Running Tests
-
-Run test classes from:
-src/test/java
-
----
-
-## Future Enhancements
-
-- Reservation system
-- Notification system
-- Recommendation engine
-- Multi-branch support
-- Database integration
-
----
-
-## Author
-
-Amit Sharma
-
-# Library Management System - UML Class Diagram
-
-## UML Diagram
+# UML Diagram
 
 ```mermaid
 classDiagram
+
+%% =========================
+%% MODEL CLASSES
+%% =========================
 
 class Book {
   -String isbn
@@ -124,11 +173,14 @@ class Book {
   -String author
   -int publicationYear
   -boolean available
+
   +Book(String isbn, String title, String author, int publicationYear)
+
   +getIsbn() String
   +getTitle() String
   +getAuthor() String
   +getPublicationYear() int
+
   +isAvailable() boolean
   +setAvailable(boolean available)
 }
@@ -136,119 +188,276 @@ class Book {
 class Patron {
   -String id
   -String name
-  -List~LoanRecord~ borrowingHistory
+
   +Patron(String id, String name)
+
   +getId() String
   +getName() String
-  +getBorrowingHistory() List~LoanRecord~
 }
 
 class LoanRecord {
   -Book book
   -Patron patron
-  -LocalDate borrowDate
-  -LocalDate returnDate
+
   +LoanRecord(Book book, Patron patron)
+
   +getBook() Book
   +getPatron() Patron
-  +getBorrowDate() LocalDate
-  +getReturnDate() LocalDate
-  +setReturnDate(LocalDate returnDate)
 }
 
+%% =========================
+%% SERVICE CLASSES
+%% =========================
+
 class InventoryService {
-  -List~Book~ books
   +addBook(Book book)
   +removeBook(String isbn)
-  +getAllBooks() List~Book~
+  +getAllBooks() List
 }
 
 class LendingService {
-  -List~LoanRecord~ loanRecords
   +checkoutBook(Book book, Patron patron)
   +returnBook(Book book)
 }
 
 class SearchService {
-  +searchBooks(List~Book~ books, SearchType type, String keyword) List~Book~
+  +searchBooks(List books, SearchType type, String keyword)
 }
+
+class NotificationService {
+  +addObserver(NotificationObserver observer)
+  +notifyAllObservers(String message)
+}
+
+%% =========================
+%% STRATEGY PATTERN
+%% =========================
 
 class SearchStrategy {
   <<interface>>
-  +search(List~Book~ books, String keyword) List~Book~
+
+  +search(List books, String keyword)
 }
 
 class TitleSearchStrategy {
-  +search(List~Book~ books, String keyword) List~Book~
+  +search(List books, String keyword)
 }
 
 class AuthorSearchStrategy {
-  +search(List~Book~ books, String keyword) List~Book~
+  +search(List books, String keyword)
 }
 
+%% =========================
+%% FACTORY PATTERN
+%% =========================
+
 class SearchStrategyFactory {
-  +getStrategy(SearchType type) SearchStrategy
+  +getStrategy(SearchType type)
 }
 
 class SearchType {
   <<enumeration>>
+
   TITLE
   AUTHOR
 }
 
-class ValidationUtil {
-  <<utility>>
-  +validateNotBlank(String value, String fieldName)
-  +validateNotNull(Object obj, String fieldName)
+%% =========================
+%% OBSERVER PATTERN
+%% =========================
+
+class NotificationObserver {
+  <<interface>>
+
+  +notifyUser(String message)
 }
 
-Book "1" <-- "many" LoanRecord : borrowed in
-Patron "1" <-- "many" LoanRecord : creates
+class EmailNotification {
+  +notifyUser(String message)
+}
 
-InventoryService --> Book : manages
-LendingService --> LoanRecord : creates
-LendingService --> Book : updates
-LendingService --> Patron : manages borrowing
+class AppNotification {
+  +notifyUser(String message)
+}
 
-SearchService --> SearchStrategy : uses
-SearchStrategyFactory --> SearchStrategy : creates
-SearchService --> SearchStrategyFactory : calls
+%% =========================
+%% EXCEPTIONS
+%% =========================
+
+class BookNotFoundException {
+  <<RuntimeException>>
+}
+
+class BookUnavailableException {
+  <<RuntimeException>>
+}
+
+class InvalidPatronException {
+  <<RuntimeException>>
+}
+
+%% =========================
+%% UTILITY
+%% =========================
+
+class ValidationUtil {
+  <<utility>>
+
+  +validateNotBlank(String value, String fieldName)
+  +validateNotNull(Object object, String fieldName)
+}
+
+%% =========================
+%% RELATIONSHIPS
+%% =========================
+
+LoanRecord --> Book
+LoanRecord --> Patron
+
+InventoryService --> Book
+
+LendingService --> LoanRecord
+LendingService --> Book
+LendingService --> Patron
+
+SearchService --> SearchStrategy
+SearchService --> SearchStrategyFactory
+
+SearchStrategyFactory --> SearchStrategy
+SearchStrategyFactory --> SearchType
 
 SearchStrategy <|.. TitleSearchStrategy
 SearchStrategy <|.. AuthorSearchStrategy
 
-SearchStrategyFactory --> SearchType
-Book --> ValidationUtil
-Patron --> ValidationUtil
+NotificationService --> NotificationObserver
 
+NotificationObserver <|.. EmailNotification
+NotificationObserver <|.. AppNotification
+
+InventoryService ..> BookNotFoundException
+
+LendingService ..> BookUnavailableException
+LendingService ..> InvalidPatronException
+
+Book ..> ValidationUtil
+Patron ..> ValidationUtil
+```
+
+# Technologies Used
+
+- Java 17
+- Gradle
+- JUnit 5
+- IntelliJ IDEA
+- Git & GitHub
+
+---
+
+# Exception Handling
+
+Custom exceptions implemented:
+- `BookNotFoundException`
+- `BookUnavailableException`
+- `InvalidPatronException`
+
+Benefits:
+- Better readability
+- Cleaner business logic
+- Easier debugging
+
+---
+
+# JUnit Test Cases
+
+Implemented unit tests for:
+- Adding books
+- Removing books
+- Checkout process
+- Return process
+- Invalid patron validation
+- Exception scenarios
+
+Test classes:
+- `InventoryServiceTest`
+- `LendingServiceTest`
+
+---
+
+# Sample Output
+
+```text
+Book borrowed successfully
+
+EMAIL SENT: Book borrowed: Effective Code
+APP ALERT: Book borrowed: Effective Code
+
+Search Results Found: 1
+
+Book returned successfully
+
+EMAIL SENT: Book returned: Effective Code
+APP ALERT: Book returned: Effective Code
 ```
 
 ---
 
-## Key Design Concepts Represented
+# How to Run
 
-### Strategy Pattern
+## Clone Repository
 
-* `SearchStrategy`
-* `TitleSearchStrategy`
-* `AuthorSearchStrategy`
+```bash
+git clone https://github.com/your-username/LibraryManagementSystem.git
+```
 
-Supports extensible search functionality.
+---
 
-### Factory Pattern
+## Open Project
 
-* `SearchStrategyFactory`
+Open project using:
+- IntelliJ IDEA
 
-Centralized strategy creation.
+---
 
-### SOLID Principles
+## Run Application
 
-* Inventory responsibilities separated from lending.
-* Search behavior abstracted.
-* Services depend on abstractions.
+Run:
+```text
+Main.java
+```
 
-### Composition Relationships
+---
 
-* `LoanRecord` contains `Book` and `Patron`
-* `InventoryService` manages `Book`
-* `LendingService` manages `LoanRecord`
+## Run Tests
+
+Run test classes:
+- `InventoryServiceTest`
+- `LendingServiceTest`
+
+---
+
+# Future Enhancements
+
+- Reservation System
+- Recommendation Engine
+- Multi-Branch Library Support
+- Database Integration
+- Spring Boot REST APIs
+- Authentication & Authorization
+
+---
+
+# Git Workflow Followed
+
+- Created feature branch
+- Implemented changes
+- Added JUnit tests
+- Created Pull Request (PR)
+- Merged PR into main branch
+
+---
+
+# Author
+
+Amit Sharma
+
+```
