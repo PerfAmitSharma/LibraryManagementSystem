@@ -1,7 +1,11 @@
 package com.library;
 
+import com.library.exception.InvalidPatronException;
+import com.library.exception.BookUnavailableException;
 import com.library.model.Book;
+import com.library.model.Patron;
 import com.library.service.InventoryService;
+import com.library.service.LendingService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
