@@ -1,15 +1,23 @@
 package com.library;
 
 import com.library.factory.SearchType;
+
 import com.library.model.Book;
 import com.library.model.Patron;
+
+import com.library.observer.AppNotification;
+import com.library.observer.EmailNotification;
+
 import com.library.service.InventoryService;
 import com.library.service.LendingService;
+import com.library.service.NotificationService;
 import com.library.service.SearchService;
 
 public class Main {
 
     public static void main(String[] args) {
+
+        // SERVICES
 
         InventoryService inventoryService =
                 new InventoryService();
@@ -20,10 +28,25 @@ public class Main {
         SearchService searchService =
                 new SearchService();
 
+        NotificationService notificationService =
+                new NotificationService();
+
+        // REGISTER OBSERVERS
+
+        notificationService.addObserver(
+                new EmailNotification()
+        );
+
+        notificationService.addObserver(
+                new AppNotification()
+        );
+
+        // CREATE BOOKS
+
         Book book1 =
                 new Book(
                         "101",
-                        "Clean Code",
+                        "Effective Code",
                         "Robert Martin",
                         2008
                 );
@@ -36,14 +59,21 @@ public class Main {
                         2018
                 );
 
+        // ADD BOOKS TO INVENTORY
+
         inventoryService.addBook(book1);
+
         inventoryService.addBook(book2);
+
+        // CREATE PATRON
 
         Patron patron =
                 new Patron(
                         "P1",
                         "Amit"
                 );
+
+        // CHECKOUT BOOK
 
         lendingService.checkoutBook(
                 book1,
@@ -54,6 +84,15 @@ public class Main {
                 "Book borrowed successfully"
         );
 
+        // SEND NOTIFICATION
+
+        notificationService.notifyAllObservers(
+                "Book borrowed: "
+                        + book1.getTitle()
+        );
+
+        // SEARCH BOOKS
+
         var results =
                 searchService.searchBooks(
                         inventoryService.getAllBooks(),
@@ -62,8 +101,23 @@ public class Main {
                 );
 
         System.out.println(
-                "Search Results: "
+                "Search Results Found: "
                         + results.size()
+        );
+
+        // RETURN BOOK
+
+        lendingService.returnBook(book1);
+
+        System.out.println(
+                "Book returned successfully"
+        );
+
+        // NOTIFY AFTER RETURN
+
+        notificationService.notifyAllObservers(
+                "Book returned: "
+                        + book1.getTitle()
         );
     }
 }
