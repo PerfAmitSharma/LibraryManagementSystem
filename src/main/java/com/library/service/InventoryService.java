@@ -1,5 +1,6 @@
 package com.library.service;
 
+import com.library.exception.BookNotFoundException;
 import com.library.model.Book;
 import com.library.util.ValidationUtil;
 
@@ -23,10 +24,19 @@ public class InventoryService {
 
     public void removeBook(String isbn) {
 
-        books.removeIf(
-                book -> book.getIsbn()
-                        .equals(isbn)
-        );
+        Book foundBook = books.stream()
+                .filter(book ->
+                        book.getIsbn()
+                                .equals(isbn))
+                .findFirst()
+                .orElseThrow(() ->
+                        new BookNotFoundException(
+                                "Book not found with ISBN: "
+                                        + isbn
+                        )
+                );
+
+        books.remove(foundBook);
     }
 
     public List<Book> getAllBooks() {

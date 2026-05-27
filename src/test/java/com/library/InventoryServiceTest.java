@@ -37,4 +37,5 @@ class InventoryServiceTest {
                 inventoryService.getAllBooks().size()
         );
     }
+
 }
